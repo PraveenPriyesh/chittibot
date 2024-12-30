@@ -1,40 +1,39 @@
 import React, { useState } from "react";
-import axios from "axios"; 
-import "./bot.css"; 
-
-const fetchResponse = async (input) => {
-  const data = { input }; // Send the user input to your server
-
-  try {
-    const response = await axios.post("http://localhost:5000/api/chat", data, {
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-
-    return response.data.response || "I'm sorry, I didn't understand that.";
-  } catch (error) {
-    console.error("Axios error:", error);
-    return "There was an error communicating with the server: " + error.message;
-  }
-};
+import axios from "axios";
+import "./bot.css"; // Style your bot in this CSS file
 
 const ChatBot = () => {
-  const [messages, setMessages] = useState([]);
-  const [input, setInput] = useState("");
+  const [messages, setMessages] = useState([]); // Store chat messages
+  const [input, setInput] = useState(""); // Store user input
 
-  const handleSend = async () => {
-    if (input.trim()) {
-      const userMessage = { text: input, sender: "user" };
-      setMessages((prev) => [...prev, userMessage]);
+  const sendMessageToBot = async (inputMessage) => {
+    if (!inputMessage.trim()) return; // Don't send empty messages
 
-      // Fetch the bot's response from your server
-      const botResponseText = await fetchResponse(input);
-      const botMessage = { text: botResponseText, sender: "bot" };
-      setMessages((prev) => [...prev, botMessage]);
+    // Add user's message to the state
+    const userMessage = { sender: "user", text: inputMessage };
+    setMessages((prevMessages) => [...prevMessages, userMessage]);
 
-      // Clear input
-      setInput("");
+    try {
+      const response = await axios.post(
+        "http://localhost:5000/api/chat",
+        { message: inputMessage }
+      );
+
+      const botResponseText = response?.data?.response;
+
+      if (botResponseText) {
+        // Add bot's response to the state
+        const botMessage = { sender: "bot", text: botResponseText };
+        setMessages((prevMessages) => [...prevMessages, botMessage]);
+      } else {
+        throw new Error("No response from the bot");
+      }
+    } catch (error) {
+      console.error("Error communicating with backend:", error.message);
+      const errorMessage = { sender: "bot", text: "Sorry, something went wrong. Please try again." };
+      setMessages((prevMessages) => [...prevMessages, errorMessage]);
+    } finally {
+      setInput(""); // Clear input after sending the message
     }
   };
 
@@ -58,9 +57,9 @@ const ChatBot = () => {
           placeholder="Type a message..."
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          onKeyPress={(e) => e.key === "Enter" && handleSend()}
+          onKeyDown={(e) => e.key === "Enter" && sendMessageToBot(input)} // Send message on Enter key press
         />
-        <button className="send-button" onClick={handleSend}>
+        <button className="send-button" onClick={() => sendMessageToBot(input)}>
           Send
         </button>
       </div>
