@@ -13,14 +13,11 @@
     "react-dom": "^18.3.1",
     "react-scripts": "5.0.1",
     "web-vitals": "^2.1.4"
-    
   },
-  
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "frontend": "react-scripts start", 
+    "backend": "node src/components/backend/server.js",
+    "dev": "concurrently \"npm run frontend\" \"npm run backend\"" 
   },
   "eslintConfig": {
     "extends": [
@@ -41,6 +38,7 @@
     ]
   },
   "devDependencies": {
-    "@babel/plugin-proposal-private-property-in-object": "^7.21.11"
+    "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
+    "concurrently": "^9.1.1"
   }
 }
